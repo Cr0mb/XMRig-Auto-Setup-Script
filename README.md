@@ -1,4 +1,4 @@
-# Auto Mining Script
+# Auto Mining Script Malware
 
 This script automates the process of downloading and setting up **XMRig** (a Monero mining software) on Windows, and it configures the software to run automatically on startup. It ensures that the script is executed with **Administrator** privileges, extracts the XMRig zip file, and sets up a **VBScript** to launch XMRig when the system starts.
 
