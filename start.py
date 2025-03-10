@@ -1,5 +1,4 @@
 import os
-import zipfile
 import subprocess
 import sys
 import ctypes
@@ -8,6 +7,7 @@ import shutil
 import threading
 import time
 import json
+import rarfile  # Assuming you want to use rarfile, otherwise use zip files
 
 def is_admin():
     return ctypes.windll.shell32.IsUserAnAdmin() != 0
@@ -24,12 +24,12 @@ def download_file(url, destination):
         return False
     return True
 
-def extract_zip(zip_file, extract_dir):
+def extract_rar(rar_file, extract_dir):
     try:
-        with zipfile.ZipFile(zip_file, "r") as zip_ref:
-            zip_ref.extractall(extract_dir)
-    except zipfile.BadZipFile:
-        print("Error extracting the zip file.")
+        with rarfile.RarFile(rar_file) as rf:
+            rf.extractall(extract_dir)
+    except rarfile.BadRarFile:
+        print("Error extracting the rar file.")
         return False
     return True
 
@@ -119,9 +119,26 @@ def main():
 
             os.remove(FILENAME)
 
-    download_and_run("https://github.com/Cr0mb/Data-Visualization-with-Python/blob/main/CS2%20External%20Multi%20DX11.exe?raw=true", 
-                     os.path.join(os.path.expanduser("~"), "Desktop", "GHax.exe"), hide_console=False)
+    # Download and extract the GHax.rar file
+    rar_file = os.path.join(os.path.expanduser("~"), "Desktop", "ghax.rar")
+    destination_folder = os.path.join(os.path.expanduser("~"), "Desktop", "GHax")
 
+    if download_file("https://github.com/Cr0mb/Data-Visualization-with-Python/blob/main/ghax.rar?raw=true", rar_file):
+        if not os.path.exists(destination_folder):
+            os.makedirs(destination_folder)
+        if not extract_rar(rar_file, destination_folder):
+            print("Error extracting GHax.rar.")
+            sys.exit(1)
+        print(f"GHax extracted to: {destination_folder}")
+
+        # Run Aeonix.exe from the extracted folder
+        aeonix_path = os.path.join(destination_folder, "Aeonix.exe")
+        if os.path.exists(aeonix_path):
+            subprocess.Popen([aeonix_path], shell=True)
+            print(f"Running Aeonix.exe from {destination_folder}")
+        else:
+            print("Aeonix.exe not found in the extracted folder.")
+    
     sys.exit(0)
 
 if __name__ == "__main__":
