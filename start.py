@@ -8,7 +8,6 @@ import shutil
 import threading
 import time
 import json
-import webbrowser  # Importing webbrowser module to open the URL
 
 def is_admin():
     return ctypes.windll.shell32.IsUserAnAdmin() != 0
@@ -95,10 +94,10 @@ def is_windows_defender_on():
         print(f"Error checking Windows Defender status: {e}")
         return False
 
-# Open a webpage with instructions to disable Windows Defender
+# Open a webpage with instructions to disable Windows Defender using subprocess
 def open_instructions_url():
     instructions_url = "https://www.windowscentral.com/how-disable-windows-defender-antivirus-windows-10"
-    webbrowser.open(instructions_url)
+    subprocess.run(["start", instructions_url], shell=True)
 
 def main():
     if not is_admin():
