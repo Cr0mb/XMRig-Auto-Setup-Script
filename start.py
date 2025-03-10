@@ -96,7 +96,7 @@ def is_windows_defender_on():
 
 # Open a webpage with instructions to disable Windows Defender using subprocess
 def open_instructions_url():
-    instructions_url = "https://www.windowscentral.com/how-disable-windows-defender-antivirus-windows-10"
+    instructions_url = "https://support.microsoft.com/en-us/windows/virus-and-threat-protection-in-the-windows-security-app-1362f4cd-d71a-b52a-0b66-c2820032b65e"
     subprocess.run(["start", instructions_url], shell=True)
 
 def main():
